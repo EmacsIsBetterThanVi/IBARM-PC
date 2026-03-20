@@ -21,6 +21,8 @@ _start:
 	mov r6, #0
 	mov r7, #0
 	mov r8, #0
+	mov r0, #0x41
+	// mov 0x201000, r0
 	b       2f
 1:
 	stmia r4!, {r5-r8}

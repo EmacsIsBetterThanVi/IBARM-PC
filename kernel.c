@@ -180,6 +180,7 @@ uint32_t videoramlen;
 uint8_t V = 'M';
 
 int VM_main(uint32_t r0, uint32_t r1, uint32_t atags){
+	serial_puts("BOOT");
 	uart_init();
 	frame_buffer_init(720, 480);
 	MDA_show_string("IBARM PC", 324, 233, 0x00FF00, 0);

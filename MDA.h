@@ -19,7 +19,7 @@ void MDA_show_string(const char* str, uint32_t x, uint32_t y, uint32_t color, ui
 }
 void MDA_update(){
 	clear_framebuffer();
-	for (uint8_t chr = 0; chr<2000; chr++){
+	for (uint16_t chr = 0; chr<2000; chr++){
 		// TODO: ADD FLAGS
 		MDA_draw_char(videoram[chr*2], (chr%80)*9, (chr/80)*14, 0x00FF00, 0);
 	}
