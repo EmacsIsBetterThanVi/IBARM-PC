@@ -1,43 +1,10 @@
 #include <stddef.h>
 #include <stdint.h>
 #include "symbols.h"
-#if PI_MOD==4
-static uint32_t MMIO_BASE = 0xFE000000;
-#elif PI_MOD>=2
-static uint32_t MMIO_BASE = 0x3F000000;
-#else
-static uint32_t MMIO_BASE = 0x20000000;
+#include "GPIO.h"
+#ifndef DEBUG
+#define DEBUG 0
 #endif
-enum GPIO{
-	GPIO_BASE = 0x200000,
-	GPPUD = (GPIO_BASE + 0x94),
-	GPPUDCLK0 = (GPIO_BASE + 0x98),
-	MBOX_BASE    = 0xB880,
-    MBOX_READ    = (MBOX_BASE + 0x00),
-    MBOX_STATUS  = (MBOX_BASE + 0x18),
-    MBOX_WRITE   = (MBOX_BASE + 0x20)
-	};
-enum UART{
-	UART0_BASE = (GPIO_BASE + 0x1000), 
-	UART0_DR     = (UART0_BASE + 0x00),
-    UART0_RSRECR = (UART0_BASE + 0x04),
-    UART0_FR     = (UART0_BASE + 0x18),
-    UART0_ILPR   = (UART0_BASE + 0x20),
-    UART0_IBRD   = (UART0_BASE + 0x24),
-    UART0_FBRD   = (UART0_BASE + 0x28),
-    UART0_LCRH   = (UART0_BASE + 0x2C),
-    UART0_CR     = (UART0_BASE + 0x30),
-    UART0_IFLS   = (UART0_BASE + 0x34),
-    UART0_IMSC   = (UART0_BASE + 0x38),
-    UART0_RIS    = (UART0_BASE + 0x3C),
-    UART0_MIS    = (UART0_BASE + 0x40),
-    UART0_ICR    = (UART0_BASE + 0x44),
-    UART0_DMACR  = (UART0_BASE + 0x48),
-    UART0_ITCR   = (UART0_BASE + 0x80),
-    UART0_ITIP   = (UART0_BASE + 0x84),
-    UART0_ITOP   = (UART0_BASE + 0x88),
-    UART0_TDR    = (UART0_BASE + 0x8C),
-};
 static inline void delay(int32_t count){
 	asm volatile("__delay_%=: subs %[count], %[count], #1; bne __delay_%=\n"
 		 : "=r"(count): [count]"0"(count) : "cc");
@@ -45,14 +12,6 @@ static inline void delay(int32_t count){
 volatile uint32_t  __attribute__((aligned(16))) mbox[36] = {
     36, 0, 0x38002, 12, 8, 2, 3000000, 0 ,0
 };
-static inline void mmio_write(uint32_t reg, uint32_t data)
-{
-	*(volatile uint32_t*)(MMIO_BASE + reg) = data;
-}
-static inline uint32_t mmio_read(uint32_t reg)
-{
-	return *(volatile uint32_t*)(MMIO_BASE + reg);
-}
 uint32_t fb_width, fb_height, fb_pitch, fb_rgbp;
 uint8_t *fb;
 uint32_t mbox_call(uint8_t chanel){
@@ -172,23 +131,38 @@ void fill_framebuffer(uint32_t color){
 			}
 	}
 }
-#define clear_framebuffer() fill_framebuffer(0)
 // VIDEO CONTROLLERS
 uint8_t *videoram;
 uint32_t videoramlen;
 #include "MDA.h"
 uint8_t V = 'M';
-
+struct FNS Fns;
+void Kinterupt(){
+  if (DEBUG) serial_puts("Handover: GUEST -> IBARMPC;\n");
+}
 int VM_main(uint32_t r0, uint32_t r1, uint32_t atags){
-	serial_puts("BOOT");
+	serial_puts("IBARM PC version 0.1;\n");
+	#if DEBUG==1
+	serial_puts("Boot Options:");
+	serial_puti(r0);
+	serial_putc(',');
+	serial_puti(r1);
+	serial_putc(',');
+	serial_puti(atags);
+	serial_puts(";\n");
+	#endif
 	uart_init();
 	frame_buffer_init(720, 480);
 	MDA_show_string("IBARM PC", 324, 233, 0x00FF00, 0);
 	MDA_show_string("version 0.1", 311, 247, 0x00FF00, 0);
+	delay(1024*1024*1024);
+	serial_puts("CONFIG;\n");
 	// TODO: LOAD CONFIG
 	if (V == 'V'); // VGA
 	else if (V == 'C'); // CGA
 	else MDA_init(); // MDA
 	clear_framebuffer();
+	MDA_show_string("Loading Kernel", 0, 0, 0x00FF00, 0);
+        if (DEBUG) serial_puts("Handover: IBARMPC -> GUEST;\n");
 	return 0;
 }

@@ -1,21 +1,27 @@
 CFILES = $(wildcard *.c)
 OFILES = $(CFILES:.c=.o)
-GCCFLAGS = -Wall -O2 -fpic -ffreestanding -mcpu=cortex-a7 -nostartfiles
+PIMOD = 2
+GCCFLAGS = -Wall -Wextra -nostdlib -mgeneral-regs-only -fpic -ffreestanding -mcpu=cortex-a7 -nostartfiles -DPI_MOD=$(PIMOD)
+V=@
 
 all: kernel7.img
 
 boot.o: boot.s
-	arm-none-eabi-gcc $(GCCFLAGS) -DPI_MOD=2 -c boot.s -o boot.o
+	$(V)arm-none-eabi-gcc $(GCCFLAGS) -c boot.s -o boot.o
 
 %.o: %.c
-	arm-none-eabi-gcc $(GCCFLAGS) -c $< -o $@
+	$(V)arm-none-eabi-gcc $(GCCFLAGS) -c $< -o $@
 
 kernel7.img: boot.o $(OFILES)
-	arm-none-eabi-ld -nostdlib boot.o $(OFILES) -T linker.ld -o kernel7.elf
-	arm-none-eabi-objcopy -O binary kernel7.elf kernel7.img
+	$(V)arm-none-eabi-gcc -T linker.ld -o kernel7.elf -ffreestanding -nostdlib boot.o $(OFILES) -lgcc
+	$(V)arm-none-eabi-objcopy kernel7.elf -O binary kernel7.img
+debug: GCCFLAGS = -Wall -Wextra -nostdlib -mgeneral-regs-only -fpic -ffreestanding -mcpu=cortex-a7 -nostartfiles -DPI_MOD=$(PIMOD) -DDEBUG=1
+debug:	kernel7.img
+test: kernel7.img
+	$(V)qemu-system-arm -machine raspi2b -kernel kernel7.elf -serial stdio
 
 run:
-	qemu-system-arm -machine raspi2b -kernel kernel7.img
+	$(V)qemu-system-arm -machine raspi2b -kernel kernel7.img
 
 clean:
-	rm *.elf *.o kernel7.img >/dev/null 2>/dev/null
+	$(V)rm -f *.elf *.o kernel7.img 2>/dev/null
