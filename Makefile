@@ -1,4 +1,6 @@
 CFILES = $(wildcard *.c)
+CFILES+= $(wildcard drivers/*.c)
+CFILES+= $(wildcard vm/*.c)
 OFILES = $(CFILES:.c=.o)
 PIMOD = 2
 GCCFLAGS = -Wall -Wextra -nostdlib -mgeneral-regs-only -fpic -ffreestanding -mcpu=cortex-a7 -nostartfiles -DPI_MOD=$(PIMOD)
@@ -9,7 +11,7 @@ all: kernel7.img
 boot.o: boot.s
 	$(V)arm-none-eabi-gcc $(GCCFLAGS) -c boot.s -o boot.o
 
-%.o: %.c
+%.o: %.c %.h
 	$(V)arm-none-eabi-gcc $(GCCFLAGS) -c $< -o $@
 
 kernel7.img: boot.o $(OFILES)
@@ -24,4 +26,4 @@ run:
 	$(V)qemu-system-arm -machine raspi2b -kernel kernel7.img
 
 clean:
-	$(V)rm -f *.elf *.o kernel7.img 2>/dev/null
+	$(V)rm -f *.elf *.o drivers/*.o vm/*.o kernel7.img 2>/dev/null

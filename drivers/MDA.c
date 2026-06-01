@@ -1,7 +1,7 @@
 #include <stdint.h>
 #include <stddef.h>
-#include "symbols.h"
-#include "Resources/MDA.h"
+#include "../symbols.h"
+#include "../Resources/MDA.h"
 #include "MDA.h"
 void MDA_init(){
 	videoramlen = 4000;

@@ -2,6 +2,9 @@
 #include <stdint.h>
 #include "symbols.h"
 #include "GPIO.h"
+#include "drivers/MDA.h"
+#include "drivers/USB.h"
+#include "drivers/keyboard.h"
 #ifndef DEBUG
 #define DEBUG 0
 #endif
@@ -134,7 +137,6 @@ void fill_framebuffer(uint32_t color){
 // VIDEO CONTROLLERS
 uint8_t *videoram;
 uint32_t videoramlen;
-#include "MDA.h"
 uint8_t V = 'M';
 struct FNS Fns;
 void Kinterupt(){
