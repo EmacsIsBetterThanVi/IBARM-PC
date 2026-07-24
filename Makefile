@@ -11,7 +11,7 @@ all: kernel7.img
 boot.o: boot.s
 	$(V)arm-none-eabi-gcc $(GCCFLAGS) -c boot.s -o boot.o
 
-%.o: %.c %.h
+%.o: %.c
 	$(V)arm-none-eabi-gcc $(GCCFLAGS) -c $< -o $@
 
 kernel7.img: boot.o $(OFILES)
